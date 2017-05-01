@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/ros.h>
 #include <rqt_image_view/ratio_layouted_frame.h>
 
 #include <assert.h>
@@ -40,6 +39,7 @@ namespace rqt_image_view {
 
 RatioLayoutedFrame::RatioLayoutedFrame(QWidget* parent, Qt::WindowFlags flags)
   : QFrame()
+  , outer_layout_(NULL)
   , aspect_ratio_(4, 3)
   , smoothImage_(false)
 {
@@ -77,9 +77,24 @@ void RatioLayoutedFrame::resizeToFitAspectRatio()
   QRect rect = contentsRect();
 
   // reduce longer edge to aspect ration
-  double width = outer_layout_->contentsRect().width() - 2;
-  double height = outer_layout_->contentsRect().height() - 2;
-  const double layout_ar = width / height;
+  double width;
+  double height;
+
+  if (outer_layout_)
+  {
+    width = outer_layout_->contentsRect().width() - 2;
+    height = outer_layout_->contentsRect().height() - 2;
+  }
+  else
+  {
+    // if outer layout isn't available, this will use the old
+    // width and height, but this can shrink the display image if the
+    // aspect ratio changes.
+    width = rect.width();
+    height = rect.height();
+  }
+
+  double layout_ar = width / height;
   const double image_ar = double(aspect_ratio_.width()) / double(aspect_ratio_.height());
   if (layout_ar > image_ar)
   {
